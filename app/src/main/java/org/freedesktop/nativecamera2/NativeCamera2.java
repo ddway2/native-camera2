@@ -23,10 +23,12 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.Toast;
+import android.view.View;
+import android.view.ViewGroup;
 
 public class NativeCamera2 extends Activity {
 
@@ -38,12 +40,19 @@ public class NativeCamera2 extends Activity {
 
     public static native void stopPreview();
 
+    LayoutInflater burstModeViewLayoutInflater = null;
+
+    boolean isBurstModeOn = false;
+
     static {
         System.loadLibrary("native-camera2-jni");
     }
 
     SurfaceView surfaceView;
     SurfaceHolder surfaceHolder;
+
+    SurfaceView burstModeView;
+    SurfaceHolder burstModeSurfaceHolder;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -80,6 +89,50 @@ public class NativeCamera2 extends Activity {
                 Log.v(TAG, "format=" + format + " w/h : (" + width + ", " + height + ")");
             }
         });
+
+
+        burstModeViewLayoutInflater = LayoutInflater.from(getBaseContext());
+
+        View view = burstModeViewLayoutInflater.inflate(R.layout.burstmodelayout, null);
+        ViewGroup.LayoutParams layoutParamsControl
+                = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        this.addContentView(view, layoutParamsControl);
+
+        burstModeView = (SurfaceView) findViewById(R.id.burstmodeview);
+        burstModeView.setVisibility(View.INVISIBLE);
+
+        burstModeSurfaceHolder = burstModeView.getHolder();
+        burstModeSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+
+            }
+        });
+
+        surfaceView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isBurstModeOn = !isBurstModeOn;
+
+                if (isBurstModeOn) {
+                    burstModeView.setVisibility(View.VISIBLE);
+                } else {
+                    burstModeView.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
     }
 
     @Override
@@ -87,4 +140,6 @@ public class NativeCamera2 extends Activity {
         stopPreview();
         super.onDestroy();
     }
+
+
 }
